@@ -9,7 +9,7 @@ from scipy import stats
 st.set_page_config(page_title="Statistical Methods Demo", layout="wide", initial_sidebar_state="expanded")
 
 # Sidebar for page selection
-page = st.sidebar.selectbox("Choose a page", ["Python Stats", "Python Expressions", "Julia Expressions", "R Expressions"])
+page = st.sidebar.selectbox("Choose a page", ["Python Stats", "Python Expressions", "Julia Expressions", "R Expressions", "Graph Types"])
 
 # Generate sample data
 np.random.seed(42)
@@ -72,7 +72,6 @@ elif page == "Python Expressions":
     st.write("This page shows how statistical measures are calculated in Python (as code examples, not executed here).")
     st.write("These are the expressions used in the 'Python Stats' page to compute the live results.")
 
-    # Python code as text
     python_code = """
     import numpy as np
     from scipy import stats
@@ -114,7 +113,6 @@ elif page == "Julia Expressions":
     st.title("Julia Statistical Expressions")
     st.write("This page shows how statistical measures would be calculated in Julia (as code examples, not executed).")
 
-    # Julia code as text
     julia_code = """
     using Statistics
     using StatsBase
@@ -154,7 +152,6 @@ elif page == "R Expressions":
     st.title("R Statistical Expressions")
     st.write("This page shows how statistical measures would be calculated in R (as code examples, not executed).")
 
-    # R code as text
     r_code = """
     # Sample data would be defined as:
     # data <- c(your_data_here)
@@ -189,6 +186,75 @@ elif page == "R Expressions":
       2. Install the `moments` package: `install.packages("moments")`
       3. Load the package: `library(moments)`
       4. Replace `data` with your actual dataset
+    """)
+
+elif page == "Graph Types":
+    # --- Graph Types Page ---
+    st.title("Statistical Graph Types in Python")
+    st.write("This page demonstrates various statistical graph types, their use cases, and visualizations using the sample data.")
+
+    # Histogram
+    st.subheader("1. Histogram")
+    st.write("**Use Case**: Shows the distribution of a single variable, revealing shape, spread, and central tendency.")
+    fig1, ax1 = plt.subplots()
+    sns.histplot(data, bins=30, kde=True, ax=ax1)
+    ax1.set_title("Histogram with KDE")
+    st.pyplot(fig1)
+
+    # Box Plot
+    st.subheader("2. Box Plot")
+    st.write("**Use Case**: Displays summary statistics (median, quartiles, outliers) and compares distributions.")
+    fig2, ax2 = plt.subplots()
+    sns.boxplot(x=data, ax=ax2)
+    ax2.set_title("Box Plot")
+    st.pyplot(fig2)
+
+    # Violin Plot
+    st.subheader("3. Violin Plot")
+    st.write("**Use Case**: Combines box plot with kernel density, showing distribution shape and summary stats.")
+    fig3, ax3 = plt.subplots()
+    sns.violinplot(x=data, ax=ax3)
+    ax3.set_title("Violin Plot")
+    st.pyplot(fig3)
+
+    # Bar Plot (using binned data)
+    st.subheader("4. Bar Plot")
+    st.write("**Use Case**: Shows counts or summaries for categorical or binned data.")
+    bins = np.histogram_bin_edges(data, bins=10)
+    hist, _ = np.histogram(data, bins=bins)
+    fig4, ax4 = plt.subplots()
+    ax4.bar(bins[:-1], hist, width=np.diff(bins), edgecolor='black')
+    ax4.set_title("Bar Plot of Binned Data")
+    st.pyplot(fig4)
+
+    # Scatter Plot (simulated paired data)
+    st.subheader("5. Scatter Plot")
+    st.write("**Use Case**: Examines relationships between two continuous variables.")
+    x_data = np.random.normal(0, 1, len(data))
+    fig5, ax5 = plt.subplots()
+    ax5.scatter(x_data, data, alpha=0.5)
+    ax5.set_title("Scatter Plot (Simulated Paired Data)")
+    ax5.set_xlabel("X Variable")
+    ax5.set_ylabel("Sample Data")
+    st.pyplot(fig5)
+
+    # Line Plot (cumulative distribution)
+    st.subheader("6. Line Plot (ECDF)")
+    st.write("**Use Case**: Shows cumulative distribution or trends over a continuous variable.")
+    sorted_data = np.sort(data)
+    y = np.arange(1, len(data) + 1) / len(data)
+    fig6, ax6 = plt.subplots()
+    ax6.plot(sorted_data, y)
+    ax6.set_title("Empirical Cumulative Distribution Function (ECDF)")
+    ax6.set_xlabel("Value")
+    ax6.set_ylabel("Cumulative Probability")
+    st.pyplot(fig6)
+
+    st.subheader("Additional Notes")
+    st.write("""
+    - These visualizations use Matplotlib and Seaborn, which are included in the app's dependencies.
+    - The sample data here is continuous and bimodal, but these graph types can be adapted for other data types (categorical, time series, etc.).
+    - For more complex datasets (e.g., multivariate), additional graph types like heatmaps or pair plots could be used.
     """)
 
 # Shared explanations
