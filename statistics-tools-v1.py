@@ -4,23 +4,29 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 from scipy import stats
-from julia import Main  # PyJulia interface
-import julia
 
-# Initialize Julia runtime
+# Attempt to import Julia, but continue if it fails
+julia_available = False
 try:
+    from julia import Main
+    import julia
     jl = julia.Julia(compiled_modules=False)
+    jl.eval("using Statistics; using StatsBase")
+    julia_available = True
 except Exception as e:
-    st.error(f"Julia initialization failed: {e}. Please ensure Julia is installed.")
-    st.stop()
+    st.warning(f"Julia integration unavailable: {e}. Julia page will be disabled. "
+               "To use Julia features, install Julia locally and run this app with 'streamlit run your_app.py'.")
 
 # Set page config
 st.set_page_config(page_title="Statistical Methods Demo", layout="wide", initial_sidebar_state="expanded")
 
 # Sidebar for page selection
-page = st.sidebar.selectbox("Choose a page", ["Python Stats", "Julia Stats"])
+pages = ["Python Stats"]
+if julia_available:
+    pages.append("Julia Stats")
+page = st.sidebar.selectbox("Choose a page", pages)
 
-# Generate sample data (shared between pages)
+# Generate sample data
 np.random.seed(42)
 data = np.concatenate([
     np.random.normal(100, 15, 1000),
@@ -28,7 +34,7 @@ data = np.concatenate([
 ])
 
 if page == "Python Stats":
-    # --- Original Python Page ---
+    # --- Python Page ---
     st.title("Statistical Methods Demonstration (Python)")
     st.write("This page demonstrates statistical measures using Python.")
 
@@ -75,8 +81,8 @@ if page == "Python Stats":
         ax1.set_title("Distribution with Key Statistics")
         st.pyplot(fig1)
 
-elif page == "Julia Stats":
-    # --- New Julia Page ---
+elif page == "Julia Stats" and julia_available:
+    # --- Julia Page ---
     st.title("Statistical Methods Demonstration (Julia)")
     st.write("This page demonstrates statistical measures using Julia.")
 
@@ -85,12 +91,9 @@ elif page == "Julia Stats":
 
     # Julia statistical calculations
     jl.eval("""
-    using Statistics
-    using StatsBase
-    
     mean_val = mean(data)
     median_val = median(data)
-    mode_val = length(unique(data)) < length(data) ? mode(data) : mean_val  # Fallback to mean if no mode
+    mode_val = length(unique(data)) < length(data) ? mode(data) : mean_val
     std_val = std(data)
     var_val = var(data)
     kurt_val = kurtosis(data)
