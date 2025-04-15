@@ -25,7 +25,8 @@ col1, col2 = st.columns(2)
 # Calculate statistics
 mean = np.mean(data)
 median = np.median(data)
-mode = stats.mode(data)[0][0]
+mode_result = stats.mode(data, keepdims=True)  # Use keepdims=True for consistent output
+mode = mode_result.mode[0] if mode_result.count[0] > 1 else mean  # Fallback to mean if no clear mode
 std_dev = np.std(data)
 variance = np.var(data)
 kurt = stats.kurtosis(data)
@@ -78,7 +79,7 @@ with st.expander("Click to see explanations"):
     st.write("""
     - **Mean**: Arithmetic average of all values
     - **Median**: Middle value when data is sorted
-    - **Mode**: Most frequent value in the dataset
+    - **Mode**: Most frequent value in the dataset (falls back to mean if no clear mode)
     - **Standard Deviation**: Measure of data dispersion from the mean
     - **Sample Variance**: Square of standard deviation
     - **Kurtosis**: Measure of tailedness of the distribution
@@ -102,8 +103,11 @@ if user_input:
     try:
         user_data = [float(x.strip()) for x in user_input.split(',')]
         if len(user_data) > 1:
+            user_mode_result = stats.mode(user_data, keepdims=True)
+            user_mode = user_mode_result.mode[0] if user_mode_result.count[0] > 1 else np.mean(user_data)
             st.write(f"Mean: {np.mean(user_data):.2f}")
             st.write(f"Median: {np.median(user_data):.2f}")
+            st.write(f"Mode: {user_mode:.2f}")
             st.write(f"Standard Deviation: {np.std(user_data):.2f}")
     except:
         st.error("Please enter valid numbers separated by commas")
