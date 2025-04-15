@@ -193,9 +193,24 @@ elif page == "Graph Types":
     st.title("Statistical Graph Types in Python")
     st.write("This page demonstrates various statistical graph types, their use cases, and visualizations using the sample data.")
 
+    # List of graph descriptions
+    st.subheader("Graph Type Descriptions")
+    st.write("""
+    - **Histogram**: Shows the distribution of a single variable, revealing shape, spread, and central tendency.
+    - **Box Plot**: Displays summary statistics (median, quartiles, outliers) and compares distributions.
+    - **Violin Plot**: Combines box plot with kernel density, showing distribution shape and summary stats.
+    - **Bar Plot**: Shows counts or summaries for categorical or binned data.
+    - **Scatter Plot**: Examines relationships between two continuous variables.
+    - **Line Plot (ECDF)**: Shows cumulative distribution or trends over a continuous variable.
+    - **Q-Q Plot**: Compares data distribution to a theoretical distribution (e.g., normal) for normality assessment.
+    - **Heatmap**: Visualizes correlation or intensity across two dimensions (here, simulated multivariate data).
+    - **Pie Chart**: Displays proportions or percentages of categories (here, binned data).
+    - **Area Plot**: Shows cumulative or stacked data trends (here, cumulative distribution alternative).
+    """)
+
     # Histogram
     st.subheader("1. Histogram")
-    st.write("**Use Case**: Shows the distribution of a single variable, revealing shape, spread, and central tendency.")
+    st.write("**Use Case**: Distribution analysis")
     fig1, ax1 = plt.subplots()
     sns.histplot(data, bins=30, kde=True, ax=ax1)
     ax1.set_title("Histogram with KDE")
@@ -203,7 +218,7 @@ elif page == "Graph Types":
 
     # Box Plot
     st.subheader("2. Box Plot")
-    st.write("**Use Case**: Displays summary statistics (median, quartiles, outliers) and compares distributions.")
+    st.write("**Use Case**: Summary statistics and outlier detection")
     fig2, ax2 = plt.subplots()
     sns.boxplot(x=data, ax=ax2)
     ax2.set_title("Box Plot")
@@ -211,7 +226,7 @@ elif page == "Graph Types":
 
     # Violin Plot
     st.subheader("3. Violin Plot")
-    st.write("**Use Case**: Combines box plot with kernel density, showing distribution shape and summary stats.")
+    st.write("**Use Case**: Distribution shape and summary stats")
     fig3, ax3 = plt.subplots()
     sns.violinplot(x=data, ax=ax3)
     ax3.set_title("Violin Plot")
@@ -219,7 +234,7 @@ elif page == "Graph Types":
 
     # Bar Plot (using binned data)
     st.subheader("4. Bar Plot")
-    st.write("**Use Case**: Shows counts or summaries for categorical or binned data.")
+    st.write("**Use Case**: Binned data counts")
     bins = np.histogram_bin_edges(data, bins=10)
     hist, _ = np.histogram(data, bins=bins)
     fig4, ax4 = plt.subplots()
@@ -229,7 +244,7 @@ elif page == "Graph Types":
 
     # Scatter Plot (simulated paired data)
     st.subheader("5. Scatter Plot")
-    st.write("**Use Case**: Examines relationships between two continuous variables.")
+    st.write("**Use Case**: Relationship between variables")
     x_data = np.random.normal(0, 1, len(data))
     fig5, ax5 = plt.subplots()
     ax5.scatter(x_data, data, alpha=0.5)
@@ -238,9 +253,9 @@ elif page == "Graph Types":
     ax5.set_ylabel("Sample Data")
     st.pyplot(fig5)
 
-    # Line Plot (cumulative distribution)
+    # Line Plot (ECDF)
     st.subheader("6. Line Plot (ECDF)")
-    st.write("**Use Case**: Shows cumulative distribution or trends over a continuous variable.")
+    st.write("**Use Case**: Cumulative distribution")
     sorted_data = np.sort(data)
     y = np.arange(1, len(data) + 1) / len(data)
     fig6, ax6 = plt.subplots()
@@ -250,11 +265,53 @@ elif page == "Graph Types":
     ax6.set_ylabel("Cumulative Probability")
     st.pyplot(fig6)
 
+    # Q-Q Plot
+    st.subheader("7. Q-Q Plot")
+    st.write("**Use Case**: Normality assessment")
+    fig7, ax7 = plt.subplots()
+    stats.probplot(data, dist="norm", plot=ax7)
+    ax7.set_title("Q-Q Plot vs Normal Distribution")
+    st.pyplot(fig7)
+
+    # Heatmap (simulated correlation)
+    st.subheader("8. Heatmap")
+    st.write("**Use Case**: Correlation visualization (simulated multivariate data)")
+    sim_data = pd.DataFrame({
+        'Var1': data,
+        'Var2': np.random.normal(0, 1, len(data)),
+        'Var3': np.random.normal(10, 2, len(data))
+    })
+    corr = sim_data.corr()
+    fig8, ax8 = plt.subplots()
+    sns.heatmap(corr, annot=True, cmap='coolwarm', ax=ax8)
+    ax8.set_title("Heatmap of Simulated Correlation Matrix")
+    st.pyplot(fig8)
+
+    # Pie Chart (binned data)
+    st.subheader("9. Pie Chart")
+    st.write("**Use Case**: Proportion of categories")
+    hist, bin_edges = np.histogram(data, bins=5)
+    labels = [f"{bin_edges[i]:.0f}-{bin_edges[i+1]:.0f}" for i in range(len(hist))]
+    fig9, ax9 = plt.subplots()
+    ax9.pie(hist, labels=labels, autopct='%1.1f%%', startangle=90)
+    ax9.set_title("Pie Chart of Binned Data")
+    st.pyplot(fig9)
+
+    # Area Plot (cumulative distribution)
+    st.subheader("10. Area Plot")
+    st.write("**Use Case**: Cumulative or stacked trends")
+    fig10, ax10 = plt.subplots()
+    ax10.fill_between(sorted_data, y, alpha=0.5)
+    ax10.set_title("Area Plot of Cumulative Distribution")
+    ax10.set_xlabel("Value")
+    ax10.set_ylabel("Cumulative Probability")
+    st.pyplot(fig10)
+
     st.subheader("Additional Notes")
     st.write("""
-    - These visualizations use Matplotlib and Seaborn, which are included in the app's dependencies.
-    - The sample data here is continuous and bimodal, but these graph types can be adapted for other data types (categorical, time series, etc.).
-    - For more complex datasets (e.g., multivariate), additional graph types like heatmaps or pair plots could be used.
+    - These visualizations use Matplotlib and Seaborn, included in the app's dependencies.
+    - The sample data is continuous and bimodal, but these graphs can adapt to other data types.
+    - Some graphs (e.g., Heatmap, Scatter) use simulated additional data for demonstration.
     """)
 
 # Shared explanations
