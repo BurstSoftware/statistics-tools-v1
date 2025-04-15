@@ -5,26 +5,11 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from scipy import stats
 
-# Attempt to import Julia, but continue if it fails
-julia_available = False
-try:
-    from julia import Main
-    import julia
-    jl = julia.Julia(compiled_modules=False)
-    jl.eval("using Statistics; using StatsBase")
-    julia_available = True
-except Exception as e:
-    st.warning(f"Julia integration unavailable: {e}. Julia page will be disabled. "
-               "To use Julia features, install Julia locally and run this app with 'streamlit run your_app.py'.")
-
-# Set page config
+# Set page config as the first Streamlit command
 st.set_page_config(page_title="Statistical Methods Demo", layout="wide", initial_sidebar_state="expanded")
 
 # Sidebar for page selection
-pages = ["Python Stats"]
-if julia_available:
-    pages.append("Julia Stats")
-page = st.sidebar.selectbox("Choose a page", pages)
+page = st.sidebar.selectbox("Choose a page", ["Python Stats", "Julia Expressions"])
 
 # Generate sample data
 np.random.seed(42)
@@ -75,77 +60,53 @@ if page == "Python Stats":
         fig1, ax1 = plt.subplots()
         sns.histplot(data, bins=30, kde=True, ax=ax1)
         ax1.axvline(mean, color='r', linestyle='--', label=f'Mean: {mean:.2f}')
-        ax1.axvline(median, color='g', linestyle='--', label=f'Median: {median:.2f}')
+        ax1.axvline(median, color='g', linestyle='--', label=f'Mean: {median:.2f}')
         ax1.axvline(mode, color='y', linestyle='--', label=f'Mode: {mode:.2f}')
         ax1.legend()
         ax1.set_title("Distribution with Key Statistics")
         st.pyplot(fig1)
 
-elif page == "Julia Stats" and julia_available:
-    # --- Julia Page ---
-    st.title("Statistical Methods Demonstration (Julia)")
-    st.write("This page demonstrates statistical measures using Julia.")
+elif page == "Julia Expressions":
+    # --- Julia Expressions Page ---
+    st.title("Julia Statistical Expressions")
+    st.write("This page shows how statistical measures would be calculated in Julia (as code examples, not executed).")
+    st.write("Note: Julia integration is not active in this deployment. To use these in Julia, install Julia locally and run them in a Julia environment.")
 
-    # Pass data to Julia
-    Main.data = data
+    # Julia code as text
+    julia_code = """
+    using Statistics
+    using StatsBase
 
-    # Julia statistical calculations
-    jl.eval("""
-    mean_val = mean(data)
-    median_val = median(data)
-    mode_val = length(unique(data)) < length(data) ? mode(data) : mean_val
-    std_val = std(data)
-    var_val = var(data)
-    kurt_val = kurtosis(data)
-    skew_val = skewness(data)
-    range_val = maximum(data) - minimum(data)
-    min_val = minimum(data)
-    max_val = maximum(data)
-    sum_val = sum(data)
-    count_val = length(data)
+    # Sample data would be defined as:
+    # data = [your_data_here]
+
+    mean_val = mean(data)                           # Mean
+    median_val = median(data)                       # Median
+    mode_val = length(unique(data)) < length(data) ? mode(data) : mean_val  # Mode with fallback
+    std_val = std(data)                            # Standard Deviation
+    var_val = var(data)                            # Sample Variance
+    kurt_val = kurtosis(data)                      # Kurtosis
+    skew_val = skewness(data)                      # Skewness
+    range_val = maximum(data) - minimum(data)      # Range
+    min_val = minimum(data)                        # Minimum
+    max_val = maximum(data)                        # Maximum
+    sum_val = sum(data)                            # Sum
+    count_val = length(data)                       # Count
+    """
+
+    st.subheader("Julia Code Examples")
+    st.code(julia_code, language="julia")
+
+    st.subheader("Explanation")
+    st.write("""
+    These expressions show how to calculate the same statistics in Julia that are computed live in the Python page.
+    - Requires `Statistics` (standard library) and `StatsBase` (additional package) in Julia.
+    - To run this code, you would need to:
+      1. Install Julia (https://julialang.org/downloads/)
+      2. Install packages: `using Pkg; Pkg.add("StatsBase")`
+      3. Replace `data` with your actual dataset
+    - The Python page shows live results with the sample data, while this page shows the equivalent Julia syntax.
     """)
-
-    # Retrieve results
-    mean = Main.mean_val
-    median = Main.median_val
-    mode = Main.mode_val
-    std_dev = Main.std_val
-    variance = Main.var_val
-    kurt = Main.kurt_val
-    skew = Main.skew_val
-    range_val = Main.range_val
-    minimum = Main.min_val
-    maximum = Main.max_val
-    sum_val = Main.sum_val
-    count = Main.count_val
-
-    col1, col2 = st.columns(2)
-
-    with col1:
-        st.subheader("Statistical Measures (Julia)")
-        st.write(f"Mean: {mean:.2f}")
-        st.write(f"Median: {median:.2f}")
-        st.write(f"Mode: {mode:.2f}")
-        st.write(f"Standard Deviation: {std_dev:.2f}")
-        st.write(f"Sample Variance: {variance:.2f}")
-        st.write(f"Kurtosis: {kurt:.2f}")
-        st.write(f"Skewness: {skew:.2f}")
-        st.write(f"Range: {range_val:.2f}")
-        st.write(f"Minimum: {minimum:.2f}")
-        st.write(f"Maximum: {maximum:.2f}")
-        st.write(f"Sum: {sum_val:.2f}")
-        st.write(f"Count: {count}")
-
-    with col2:
-        st.subheader("Visualizations")
-        fig1, ax1 = plt.subplots()
-        sns.histplot(data, bins=30, kde=True, ax=ax1)
-        ax1.axvline(mean, color='r', linestyle='--', label=f'Mean: {mean:.2f}')
-        ax1.axvline(median, color='g', linestyle='--', label=f'Median: {median:.2f}')
-        ax1.axvline(mode, color='y', linestyle='--', label=f'Mode: {mode:.2f}')
-        ax1.legend()
-        ax1.set_title("Distribution with Key Statistics (Julia)")
-        st.pyplot(fig1)
 
 # Shared explanations
 st.subheader("Explanations of Statistical Measures")
