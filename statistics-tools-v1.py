@@ -4,110 +4,160 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 from scipy import stats
+from julia import Main  # PyJulia interface
+import julia
+
+# Initialize Julia runtime
+try:
+    jl = julia.Julia(compiled_modules=False)
+except Exception as e:
+    st.error(f"Julia initialization failed: {e}. Please ensure Julia is installed.")
+    st.stop()
 
 # Set page config
-st.set_page_config(page_title="Statistical Methods Demo", layout="wide")
+st.set_page_config(page_title="Statistical Methods Demo", layout="wide", initial_sidebar_state="expanded")
 
-# Title and introduction
-st.title("Statistical Methods Demonstration")
-st.write("This app demonstrates various statistical measures using a sample dataset.")
+# Sidebar for page selection
+page = st.sidebar.selectbox("Choose a page", ["Python Stats", "Julia Stats"])
 
-# Generate sample data
+# Generate sample data (shared between pages)
 np.random.seed(42)
 data = np.concatenate([
-    np.random.normal(100, 15, 1000),  # Normal distribution
-    np.random.normal(150, 20, 500)    # Second peak for bimodality
+    np.random.normal(100, 15, 1000),
+    np.random.normal(150, 20, 500)
 ])
 
-# Create two columns
-col1, col2 = st.columns(2)
+if page == "Python Stats":
+    # --- Original Python Page ---
+    st.title("Statistical Methods Demonstration (Python)")
+    st.write("This page demonstrates statistical measures using Python.")
 
-# Calculate statistics
-mean = np.mean(data)
-median = np.median(data)
-mode_result = stats.mode(data, keepdims=True)  # Use keepdims=True for consistent output
-mode = mode_result.mode[0] if mode_result.count[0] > 1 else mean  # Fallback to mean if no clear mode
-std_dev = np.std(data)
-variance = np.var(data)
-kurt = stats.kurtosis(data)
-skew = stats.skew(data)
-range_val = np.max(data) - np.min(data)
-minimum = np.min(data)
-maximum = np.max(data)
-sum_val = np.sum(data)
-count = len(data)
+    col1, col2 = st.columns(2)
 
-# Display statistics in first column
-with col1:
-    st.subheader("Statistical Measures")
-    st.write(f"Mean: {mean:.2f}")
-    st.write(f"Median: {median:.2f}")
-    st.write(f"Mode: {mode:.2f}")
-    st.write(f"Standard Deviation: {std_dev:.2f}")
-    st.write(f"Sample Variance: {variance:.2f}")
-    st.write(f"Kurtosis: {kurt:.2f}")
-    st.write(f"Skewness: {skew:.2f}")
-    st.write(f"Range: {range_val:.2f}")
-    st.write(f"Minimum: {minimum:.2f}")
-    st.write(f"Maximum: {maximum:.2f}")
-    st.write(f"Sum: {sum_val:.2f}")
-    st.write(f"Count: {count}")
+    # Calculate statistics
+    mean = np.mean(data)
+    median = np.median(data)
+    mode_result = stats.mode(data, keepdims=True)
+    mode = mode_result.mode[0] if mode_result.count[0] > 1 else mean
+    std_dev = np.std(data)
+    variance = np.var(data)
+    kurt = stats.kurtosis(data)
+    skew = stats.skew(data)
+    range_val = np.max(data) - np.min(data)
+    minimum = np.min(data)
+    maximum = np.max(data)
+    sum_val = np.sum(data)
+    count = len(data)
 
-# Create visualizations in second column
-with col2:
-    st.subheader("Visualizations")
+    with col1:
+        st.subheader("Statistical Measures")
+        st.write(f"Mean: {mean:.2f}")
+        st.write(f"Median: {median:.2f}")
+        st.write(f"Mode: {mode:.2f}")
+        st.write(f"Standard Deviation: {std_dev:.2f}")
+        st.write(f"Sample Variance: {variance:.2f}")
+        st.write(f"Kurtosis: {kurt:.2f}")
+        st.write(f"Skewness: {skew:.2f}")
+        st.write(f"Range: {range_val:.2f}")
+        st.write(f"Minimum: {minimum:.2f}")
+        st.write(f"Maximum: {maximum:.2f}")
+        st.write(f"Sum: {sum_val:.2f}")
+        st.write(f"Count: {count}")
+
+    with col2:
+        st.subheader("Visualizations")
+        fig1, ax1 = plt.subplots()
+        sns.histplot(data, bins=30, kde=True, ax=ax1)
+        ax1.axvline(mean, color='r', linestyle='--', label=f'Mean: {mean:.2f}')
+        ax1.axvline(median, color='g', linestyle='--', label=f'Median: {median:.2f}')
+        ax1.axvline(mode, color='y', linestyle='--', label=f'Mode: {mode:.2f}')
+        ax1.legend()
+        ax1.set_title("Distribution with Key Statistics")
+        st.pyplot(fig1)
+
+elif page == "Julia Stats":
+    # --- New Julia Page ---
+    st.title("Statistical Methods Demonstration (Julia)")
+    st.write("This page demonstrates statistical measures using Julia.")
+
+    # Pass data to Julia
+    Main.data = data
+
+    # Julia statistical calculations
+    jl.eval("""
+    using Statistics
+    using StatsBase
     
-    # Histogram
-    fig1, ax1 = plt.subplots()
-    sns.histplot(data, bins=30, kde=True, ax=ax1)
-    ax1.axvline(mean, color='r', linestyle='--', label=f'Mean: {mean:.2f}')
-    ax1.axvline(median, color='g', linestyle='--', label=f'Median: {median:.2f}')
-    ax1.axvline(mode, color='y', linestyle='--', label=f'Mode: {mode:.2f}')
-    ax1.legend()
-    ax1.set_title("Distribution with Key Statistics")
-    st.pyplot(fig1)
-    
-    # Box plot
-    fig2, ax2 = plt.subplots()
-    sns.boxplot(x=data, ax=ax2)
-    ax2.set_title("Box Plot showing Spread and Outliers")
-    st.pyplot(fig2)
+    mean_val = mean(data)
+    median_val = median(data)
+    mode_val = length(unique(data)) < length(data) ? mode(data) : mean_val  # Fallback to mean if no mode
+    std_val = std(data)
+    var_val = var(data)
+    kurt_val = kurtosis(data)
+    skew_val = skewness(data)
+    range_val = maximum(data) - minimum(data)
+    min_val = minimum(data)
+    max_val = maximum(data)
+    sum_val = sum(data)
+    count_val = length(data)
+    """)
 
-# Explanations
+    # Retrieve results
+    mean = Main.mean_val
+    median = Main.median_val
+    mode = Main.mode_val
+    std_dev = Main.std_val
+    variance = Main.var_val
+    kurt = Main.kurt_val
+    skew = Main.skew_val
+    range_val = Main.range_val
+    minimum = Main.min_val
+    maximum = Main.max_val
+    sum_val = Main.sum_val
+    count = Main.count_val
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.subheader("Statistical Measures (Julia)")
+        st.write(f"Mean: {mean:.2f}")
+        st.write(f"Median: {median:.2f}")
+        st.write(f"Mode: {mode:.2f}")
+        st.write(f"Standard Deviation: {std_dev:.2f}")
+        st.write(f"Sample Variance: {variance:.2f}")
+        st.write(f"Kurtosis: {kurt:.2f}")
+        st.write(f"Skewness: {skew:.2f}")
+        st.write(f"Range: {range_val:.2f}")
+        st.write(f"Minimum: {minimum:.2f}")
+        st.write(f"Maximum: {maximum:.2f}")
+        st.write(f"Sum: {sum_val:.2f}")
+        st.write(f"Count: {count}")
+
+    with col2:
+        st.subheader("Visualizations")
+        fig1, ax1 = plt.subplots()
+        sns.histplot(data, bins=30, kde=True, ax=ax1)
+        ax1.axvline(mean, color='r', linestyle='--', label=f'Mean: {mean:.2f}')
+        ax1.axvline(median, color='g', linestyle='--', label=f'Median: {median:.2f}')
+        ax1.axvline(mode, color='y', linestyle='--', label=f'Mode: {mode:.2f}')
+        ax1.legend()
+        ax1.set_title("Distribution with Key Statistics (Julia)")
+        st.pyplot(fig1)
+
+# Shared explanations
 st.subheader("Explanations of Statistical Measures")
 with st.expander("Click to see explanations"):
     st.write("""
     - **Mean**: Arithmetic average of all values
     - **Median**: Middle value when data is sorted
-    - **Mode**: Most frequent value in the dataset (falls back to mean if no clear mode)
-    - **Standard Deviation**: Measure of data dispersion from the mean
+    - **Mode**: Most frequent value (falls back to mean if no clear mode)
+    - **Standard Deviation**: Measure of data dispersion
     - **Sample Variance**: Square of standard deviation
-    - **Kurtosis**: Measure of tailedness of the distribution
-    - **Skewness**: Measure of asymmetry of the distribution
-    - **Range**: Difference between maximum and minimum values
-    - **Minimum**: Smallest value in the dataset
-    - **Maximum**: Largest value in the dataset
+    - **Kurtosis**: Measure of tailedness
+    - **Skewness**: Measure of asymmetry
+    - **Range**: Difference between maximum and minimum
+    - **Minimum**: Smallest value
+    - **Maximum**: Largest value
     - **Sum**: Total of all values
-    - **Count**: Number of values in the dataset
+    - **Count**: Number of values
     """)
-
-# Data table
-st.subheader("Sample Data Preview")
-df = pd.DataFrame(data, columns=['Values'])
-st.dataframe(df.head(10))
-
-# Add interactive feature
-st.subheader("Try Your Own Numbers")
-user_input = st.text_area("Enter numbers separated by commas (e.g., 1, 2, 3, 4, 5)")
-if user_input:
-    try:
-        user_data = [float(x.strip()) for x in user_input.split(',')]
-        if len(user_data) > 1:
-            user_mode_result = stats.mode(user_data, keepdims=True)
-            user_mode = user_mode_result.mode[0] if user_mode_result.count[0] > 1 else np.mean(user_data)
-            st.write(f"Mean: {np.mean(user_data):.2f}")
-            st.write(f"Median: {np.median(user_data):.2f}")
-            st.write(f"Mode: {user_mode:.2f}")
-            st.write(f"Standard Deviation: {np.std(user_data):.2f}")
-    except:
-        st.error("Please enter valid numbers separated by commas")
